@@ -1,23 +1,39 @@
+
 pipeline {
-    agent any
+    agent {
+        label 'cpp'
+    }
+
+    options {
+        timestamps()
+    }
 
     stages {
-        stage('Checkout') {
+        stage('Configure') {
             steps {
-                echo 'Preparing source code'
+                sh 'cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release'
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Building C++ application'
+                sh 'cmake --build build --parallel'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running tests'
+                sh 'ctest --test-dir build --output-on-failure'
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and tests completed successfully!'
+        }
+        failure {
+            echo 'Build or tests failed. Check the console output.'
         }
     }
 }
